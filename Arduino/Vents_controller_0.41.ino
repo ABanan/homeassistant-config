@@ -9,7 +9,7 @@
 
 #include <MySensors.h>
 #define SN "Vents_controller"
-#define SV "0.4"
+#define SV "0.41"
 
 // Actuators for moving the cover up and down respectively.
 #define COVER_UP_ACTUATOR_PIN 2
