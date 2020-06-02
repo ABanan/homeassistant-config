@@ -120,9 +120,14 @@ void receive(const MyMessage &message) {
       state = UP;
       sendState();
     }
-    else {
+    else if (current_percentage > new_percentage) {
       Serial.println("Moving cover down.");
       state = DOWN;
+      sendState();
+    }
+    else {
+      Serial.println("Doing nothing.");
+      status = IDLE;
       sendState();
     }
   }
