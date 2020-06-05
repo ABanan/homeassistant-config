@@ -72,33 +72,6 @@ void loop() {
     digitalWrite(COVER_DOWN_ACTUATOR_PIN, HIGH);  //turn relay off
     state = IDLE;
   }
-  
-  
-  
-  if (state == IDLE) {
-    digitalWrite(COVER_UP_ACTUATOR_PIN, HIGH);    //turn relay off
-    digitalWrite(COVER_DOWN_ACTUATOR_PIN, HIGH);  //turn relay off
-    state = IDLE;
-  }
-  
-  if (state == UP && current_percentage < new_percentage ) {
-    digitalWrite(COVER_UP_ACTUATOR_PIN, LOW);
-    delay(1000);
-    current_percentage = current_percentage + 100 / open_time;
-    Serial.println("Cover moving.");
-  }
-  else if (state == UP) {
-    state = IDLE;
-  }
-  
-  if (state == DOWN && current_percentage > new_percentage ) {
-    digitalWrite(COVER_DOWN_ACTUATOR_PIN, LOW);
-    delay(1000);
-    current_percentage = current_percentage - 100 / open_time;
-  }  
-  else if (state == DOWN) {
-    state = IDLE;
-  }  
 }
 
 void receive(const MyMessage &message) {
@@ -157,4 +130,13 @@ void receive(const MyMessage &message) {
       sendState();
     }
   }
+}
+
+void Reset() { 
+  Serial.println("Moving cover to standard position.");
+  state = DOWN;
+  sendState();
+      
+  target_time = milis() + open_time + 10;
+  digitalWrite(COVER_DOWN_ACTUATOR_PIN, LOW);
 }
