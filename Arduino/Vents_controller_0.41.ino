@@ -20,6 +20,8 @@
 const int open_time = 50;      //opening time in seconds
 int current_percentage = 0;    //otwarcie początkowe
 int new_percentage = 0;        //otwarcie docelowe
+unsigned long current_time;
+unsigned long target_time;
 
 static int percentage = 0; // 0=cover is closed, 100=cover is open
 
@@ -62,9 +64,21 @@ void presentation() {
 }
 
 void loop() {
+  
+  current_time = milis()
+  
+  if (current_time > target_time) {
+    digitalWrite(COVER_UP_ACTUATOR_PIN, HIGH);    //turn relay off
+    digitalWrite(COVER_DOWN_ACTUATOR_PIN, HIGH);  //turn relay off
+    state = IDLE;
+  }
+  
+  
+  
   if (state == IDLE) {
     digitalWrite(COVER_UP_ACTUATOR_PIN, HIGH);    //turn relay off
     digitalWrite(COVER_DOWN_ACTUATOR_PIN, HIGH);  //turn relay off
+    state = IDLE;
   }
   
   if (state == UP && current_percentage < new_percentage ) {
@@ -93,6 +107,9 @@ void receive(const MyMessage &message) {
     Serial.println("Moving cover up.");
     state = UP;
     sendState();
+    
+    target_time = milis() + (new_percentage - current_percentage) / 100 * open_time;
+    digitalWrite(COVER_UP_ACTUATOR_PIN, LOW);
   }
 
   if (message.type == V_DOWN) {
@@ -100,6 +117,9 @@ void receive(const MyMessage &message) {
     Serial.println("Moving cover down.");
     state = DOWN;
     sendState();
+    
+    target_time = milis() + (current_percentage - new_percentage) / 100 * open_time;
+    digitalWrite(COVER_DOWN_ACTUATOR_PIN, LOW);
   }
 
   if (message.type == V_STOP) {
@@ -119,11 +139,17 @@ void receive(const MyMessage &message) {
       Serial.println("Moving cover up.");
       state = UP;
       sendState();
+      
+      target_time = milis() + (new_percentage - current_percentage) / 100 * open_time;
+      digitalWrite(COVER_UP_ACTUATOR_PIN, LOW);
     }
     else if (current_percentage > new_percentage) {
       Serial.println("Moving cover down.");
       state = DOWN;
       sendState();
+      
+      target_time = milis() + (current_percentage - new_percentage) / 100 * open_time;
+      digitalWrite(COVER_DOWN_ACTUATOR_PIN, LOW);
     }
     else {
       Serial.println("Doing nothing.");
