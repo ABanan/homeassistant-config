@@ -67,7 +67,7 @@ void loop()
     request(RELAY_2_CHILD_ID, V_STATUS);
     wait(20000, C_SET, V_STATUS);
   }
-  if (time + 3*60*1000 < milis()) {
+  if (time + 3*60*1000 < millis()) {
     digitalWrite(RELAY_1_PIN, RELAY_OFF);
     digitalWrite(RELAY_2_PIN, RELAY_OFF);
     send(relay_1_msg.set(!RELAY_OFF));
@@ -80,7 +80,7 @@ void receive(const MyMessage &message)
 {
   // We only expect one type of message from controller. But we better check anyway.
   if (message.getType() == V_STATUS) {
-    time = milis();
+    time = millis();
     
     if (message.getSensor() == RELAY_1_CHILD_ID) {
       if (!initialValue1Sent) {
@@ -111,7 +111,7 @@ void receive(const MyMessage &message)
       Serial.print(", New status: ");
       Serial.println(message.getBool());
     }
-    
+  }
   if (message.isAck()) {
     Serial.println("This is an ack from gateway");
   }
