@@ -53,11 +53,8 @@ void loop()
   if (!initialValue1Sent) {
     Serial.println("Sending initial value for RELAY_1");
     send(relay_1_msg.set(state?RELAY_ON:RELAY_OFF));
-    send(relay_2_msg.set(state?RELAY_ON:RELAY_OFF));
     Serial.println("Requesting initial value from controller");
     request(RELAY_1_CHILD_ID, V_STATUS);
-    wait(20000, C_SET, V_STATUS);
-    request(RELAY_2_CHILD_ID, V_STATUS);
     wait(20000, C_SET, V_STATUS);
   }
   if (!initialValue2Sent) {
