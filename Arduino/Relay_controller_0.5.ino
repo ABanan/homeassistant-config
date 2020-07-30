@@ -28,7 +28,10 @@
 bool initialValue1Sent = false;
 bool initialValue2Sent = false;
 bool state = false;
-unsigned long time = 0;
+unsigned long switch_time1 = 0;
+unsigned long switch_time2 = 0;
+unsigned long safety_time = 180000;
+unsigned long current_time = 0;
 
 MyMessage relay_1_msg(RELAY_1_CHILD_ID, V_STATUS);
 MyMessage relay_2_msg(RELAY_2_CHILD_ID, V_STATUS);
@@ -52,41 +55,44 @@ void loop()
 {
   if (!initialValue1Sent) {
     Serial.println("Sending initial value for RELAY_1");
-    send(relay_1_msg.set(state?RELAY_ON:RELAY_OFF));
+    send(relay_1_msg.set(state?!RELAY_ON:!RELAY_OFF));
     Serial.println("Requesting initial value from controller");
     request(RELAY_1_CHILD_ID, V_STATUS);
     wait(20000, C_SET, V_STATUS);
   }
   if (!initialValue2Sent) {
     Serial.println("Sending initial value for RELAY_2");
-    send(relay_2_msg.set(state?RELAY_ON:RELAY_OFF));
+    send(relay_2_msg.set(state?!RELAY_ON:!RELAY_OFF));
     Serial.println("Requesting initial value from controller");
     request(RELAY_2_CHILD_ID, V_STATUS);
     wait(20000, C_SET, V_STATUS);
   }
-  if (time + 3*60*1000 < millis()) {
+  
+  current_time = millis();
+  
+  if (switch_time1 + safety_time < current_time) {
     digitalWrite(RELAY_1_PIN, RELAY_OFF);
-    digitalWrite(RELAY_2_PIN, RELAY_OFF);
     send(relay_1_msg.set(!RELAY_OFF));
+  }
+  if (switch_time2 + safety_time < current_time) {
+    digitalWrite(RELAY_2_PIN, RELAY_OFF);
     send(relay_2_msg.set(!RELAY_OFF));
   }
-  wait(20*000);
+  wait(5*1000);
 }
 
 void receive(const MyMessage &message)
 {
   // We only expect one type of message from controller. But we better check anyway.
-  if (message.getType() == V_STATUS) {
-    time = millis();
-    
+  if (message.getType() == V_STATUS) {    
     if (message.getSensor() == RELAY_1_CHILD_ID) {
       if (!initialValue1Sent) {
         Serial.println("Receiving initial value from controller for RELAY_1");
         initialValue1Sent = true;
       }
-      
       digitalWrite(RELAY_1_PIN, message.getBool()?RELAY_ON:RELAY_OFF);
       send(relay_1_msg.set(message.getBool()?!RELAY_ON:!RELAY_OFF));
+      switch_time1 = millis();
       
       Serial.print("Incoming change for sensor:");
       Serial.print(message.getSensor());
@@ -99,9 +105,9 @@ void receive(const MyMessage &message)
         Serial.println("Receiving initial value from controller for RELAY_2");
         initialValue2Sent = true;
       }
-      
       digitalWrite(RELAY_2_PIN, message.getBool()?RELAY_ON:RELAY_OFF);
       send(relay_2_msg.set(message.getBool()?!RELAY_ON:!RELAY_OFF));
+      switch_time2 = millis();
       
       Serial.print("Incoming change for sensor:");
       Serial.print(message.getSensor());
