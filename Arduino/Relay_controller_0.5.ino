@@ -2,6 +2,8 @@
  * MySensors relay control 0.5
  * Dodano:
  * - drugi przekaznik,
+ * - wysylanie wartości poczatkowej dla obu przekaznikow (wymagane przez HA), 
+ * - zabezpieczenie czasowe przed wlaczeniem przekaznika na stale, 
  */
 
 // Enable debug prints to serial monitor
@@ -16,7 +18,7 @@
 #define MY_NODE_ID 100
 
 #define RELAY_1_PIN 6  // Arduino Digital I/O pin number for first relay
-#define RELAY_2_PIN 7
+#define RELAY_2_PIN 7 
 #define RELAY_1_CHILD_ID 10
 #define RELAY_2_CHILD_ID 11
 
@@ -26,6 +28,7 @@
 bool initialValue1Sent = false;
 bool initialValue2Sent = false;
 bool state = false;
+unsigned long time = 0;
 
 MyMessage relay_1_msg(RELAY_1_CHILD_ID, V_STATUS);
 MyMessage relay_2_msg(RELAY_2_CHILD_ID, V_STATUS);
@@ -64,12 +67,18 @@ void loop()
     request(RELAY_2_CHILD_ID, V_STATUS);
     wait(20000, C_SET, V_STATUS);
   }
-  wait(60000);
-  digitalWrite(RELAY_1_PIN, RELAY_OFF);
+  if (time + 3*60*1000 < milis()) {
+    digitalWrite(RELAY_1_PIN, RELAY_OFF);
+    digitalWrite(RELAY_2_PIN, RELAY_OFF);
+    send(relay_1_msg.set(!RELAY_OFF));
+    send(relay_2_msg.set(!RELAY_OFF));
+  }
+  wait(20*000);
 }
 
 void receive(const MyMessage &message)
 {
+  time = milis();
   // We only expect one type of message from controller. But we better check anyway.
   if (message.getType() == V_STATUS) {
     if (message.getSensor() == RELAY_1_CHILD_ID) {
