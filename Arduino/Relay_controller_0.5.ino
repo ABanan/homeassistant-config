@@ -97,7 +97,7 @@ void receive(const MyMessage &message)
     if (message.getSensor() == RELAY_2_CHILD_ID) {
       if (!initialValue2Sent) {
         Serial.println("Receiving initial value from controller for RELAY_2");
-        initialValue1Sent = true;
+        initialValue2Sent = true;
       }
       
       digitalWrite(RELAY_2_PIN, message.getBool()?RELAY_ON:RELAY_OFF);
