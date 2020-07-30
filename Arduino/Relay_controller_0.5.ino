@@ -78,9 +78,10 @@ void loop()
 
 void receive(const MyMessage &message)
 {
-  time = milis();
   // We only expect one type of message from controller. But we better check anyway.
   if (message.getType() == V_STATUS) {
+    time = milis();
+    
     if (message.getSensor() == RELAY_1_CHILD_ID) {
       if (!initialValue1Sent) {
         Serial.println("Receiving initial value from controller for RELAY_1");
@@ -98,7 +99,7 @@ void receive(const MyMessage &message)
     
     if (message.getSensor() == RELAY_2_CHILD_ID) {
       if (!initialValue2Sent) {
-        Serial.println("Receiving initial value from controller for RELAY_1");
+        Serial.println("Receiving initial value from controller for RELAY_2");
         initialValue1Sent = true;
       }
       
